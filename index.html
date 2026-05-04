@@ -3,20 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
+  <meta name="theme-color" content="#020817" />
   <title>Trip Mileage Logger</title>
   <style>
     :root {
-      --bg: #f3f4f6;
-      --card: #ffffff;
-      --text: #111827;
-      --muted: #6b7280;
-      --border: #d1d5db;
-      --primary: #111827;
-      --primary-hover: #374151;
-      --success: #047857;
-      --danger: #b91c1c;
-      --shadow: 0 12px 30px rgba(17, 24, 39, 0.12);
+      --bg: #020817;
+      --bg-2: #07111f;
+      --card: #0f1a2b;
+      --card-2: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #243247;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #7c3aed;
+      --success: #22c55e;
+      --danger: #f87171;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
     }
 
     * { box-sizing: border-box; }
@@ -25,7 +28,7 @@
       margin: 0;
       min-height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: linear-gradient(160deg, #f9fafb, var(--bg));
+      background: radial-gradient(circle at top, #0f1a2b 0%, var(--bg) 45%, #000814 100%);
       color: var(--text);
       display: flex;
       align-items: center;
@@ -36,28 +39,28 @@
     .app {
       width: 100%;
       max-width: 430px;
-      background: var(--card);
-      border-radius: 28px;
+      background: linear-gradient(180deg, var(--card), var(--card-2));
+      border-radius: 24px;
       box-shadow: var(--shadow);
       overflow: hidden;
-      border: 1px solid rgba(209, 213, 219, 0.7);
+      border: 1px solid var(--border);
     }
 
     .header {
-      background: var(--primary);
-      color: white;
+      background: linear-gradient(135deg, #07111f, #111827 55%, #1e1b4b);
+      color: var(--text);
       padding: 28px 24px 24px;
     }
 
     .header h1 {
       margin: 0 0 8px;
-      font-size: 28px;
+      font-size: 26px;
       line-height: 1.1;
     }
 
     .header p {
       margin: 0;
-      color: #d1d5db;
+      color: var(--muted);
       font-size: 15px;
     }
 
@@ -69,6 +72,7 @@
 
     label {
       display: block;
+      color: #cbd5e1;
       font-weight: 700;
       margin-bottom: 8px;
       font-size: 14px;
@@ -84,14 +88,14 @@
       border: 1px solid var(--border);
       padding: 15px 14px;
       font-size: 17px;
-      background: white;
+      background: #07111f;
       color: var(--text);
       outline: none;
     }
 
     input:focus, textarea:focus, select:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.08);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
     }
 
     textarea {
@@ -103,7 +107,7 @@
       appearance: none;
       border: 0;
       padding: 16px 18px;
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
       color: white;
       font-weight: 800;
       font-size: 18px;
@@ -111,7 +115,7 @@
       margin-top: 4px;
     }
 
-    button:hover { background: var(--primary-hover); }
+    button:hover { background: linear-gradient(135deg, var(--primary-hover), #6d28d9); }
     button:disabled { opacity: 0.65; cursor: not-allowed; }
 
     .status {
@@ -125,16 +129,20 @@
 
     .status.success {
       display: block;
-      background: #ecfdf5;
+      background: rgba(34, 197, 94, 0.12);
       color: var(--success);
-      border: 1px solid #a7f3d0;
+      border: 1px solid rgba(34, 197, 94, 0.35);
     }
 
     .status.error {
       display: block;
-      background: #fef2f2;
+      background: rgba(248, 113, 113, 0.12);
       color: var(--danger);
-      border: 1px solid #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.35);
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #64748b;
     }
 
     .hint {
@@ -149,7 +157,7 @@
   <main class="app">
     <section class="header">
       <h1>Trip Mileage Logger</h1>
-      <p>Submit start or end odometer readings by email.</p>
+      <p>Submit start or end odometer readings to the mileage spreadsheet.</p>
     </section>
 
     <form id="tripForm">
@@ -186,24 +194,20 @@
         <textarea id="notes" name="notes" placeholder="Optional notes"></textarea>
       </div>
 
-      <p class="hint">This will open the user’s email app with the trip details filled in. Some previews block email links, but it should work when hosted normally.</p>
+      <p class="hint">Submissions will automatically save to the Google Sheet once you paste your Google Apps Script Web App URL into the code.</p>
 
       <button id="submitButton" type="submit">Submit trip</button>
     </form>
 
     <div id="status" class="status"></div>
-    <div id="emailFallback" style="display:none; margin: 0 24px 24px;">
-      <a id="emailLink" href="#" style="display:block; text-align:center; background:#111827; color:white; text-decoration:none; padding:14px 16px; border-radius:16px; font-weight:800;">Tap here to open email</a>
-    </div>
   </main>
 
   <script>
-    const EMAIL_TO = "harold@antebellummfg.com";
+    // Paste your Google Apps Script Web App URL between the quotes below.
+    const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 
     const form = document.getElementById("tripForm");
     const statusBox = document.getElementById("status");
-    const fallbackBox = document.getElementById("emailFallback");
-    const emailLink = document.getElementById("emailLink");
     const submitButton = document.getElementById("submitButton");
     const dateInput = document.getElementById("tripDate");
 
@@ -214,13 +218,20 @@
       statusBox.className = `status ${type}`;
     }
 
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
+
+      if (!WEB_APP_URL || WEB_APP_URL === "PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE") {
+        showStatus("Setup needed: paste your Google Apps Script Web App URL into the code first.", "error");
+        return;
+      }
+
       submitButton.disabled = true;
+      showStatus("Submitting...", "success");
 
       const formData = new FormData(form);
-
       const entry = {
+        submittedAt: new Date().toISOString(),
         repName: formData.get("repName").trim(),
         tripDate: formData.get("tripDate"),
         submissionType: formData.get("submissionType"),
@@ -229,30 +240,23 @@
         notes: formData.get("notes").trim()
       };
 
-      const subject = `Odometer Log - ${entry.repName} - ${entry.submissionType} - ${entry.tripDate}`;
+      try {
+        await fetch(WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(entry)
+        });
 
-      const body = `Sales Rep: ${entry.repName}%0D%0A
-Date: ${entry.tripDate}%0D%0A
-Submission Type: ${entry.submissionType}%0D%0A
-Odometer Reading: ${entry.odometer} miles%0D%0A
-Destination: ${entry.destination || "-"}%0D%0A
-Notes: ${entry.notes || "-"}`;
-
-      const mailtoLink = `mailto:${EMAIL_TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/%0D%0A/g, "
-"))}`;
-
-      emailLink.href = mailtoLink;
-      fallbackBox.style.display = "block";
-
-      const emailWindow = window.open(mailtoLink, "_blank");
-
-      if (emailWindow) {
-        showStatus("Opening email app...", "success");
-      } else {
-        showStatus("Email pop-up was blocked. Tap the button below to open email.", "error");
+        showStatus("Submitted successfully.", "success");
+        form.reset();
+        dateInput.valueAsDate = new Date();
+      } catch (error) {
+        console.error(error);
+        showStatus("Submission failed. Check the Web App URL and try again.", "error");
+      } finally {
+        submitButton.disabled = false;
       }
-
-      submitButton.disabled = false;
     });
   </script>
 </body>
