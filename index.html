@@ -185,13 +185,13 @@
       </div>
 
       <div>
-        <label for="destination">Destination / customer</label>
-        <input id="destination" name="destination" type="text" placeholder="Optional" />
+        <label for="destination">City/Market of Destination</label>
+        <input id="destination" name="destination" type="text" placeholder="Enter city or market" required />
       </div>
 
       <div>
-        <label for="notes">Notes</label>
-        <textarea id="notes" name="notes" placeholder="Optional notes"></textarea>
+        <label for="notes">Customer</label>
+        <textarea id="notes" name="notes" placeholder="Enter customer name" required></textarea>
       </div>
 
       <p class="hint">Submissions will automatically save to the Google Sheet once you paste your Google Apps Script Web App URL into the code.</p>
@@ -204,12 +204,18 @@
 
   <script>
     // Paste your Google Apps Script Web App URL between the quotes below.
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS9j8_KJffe0iMDaTHKv6W6tXNP7NeFCLhnQc3m1EFPXdJvEMO5aVApP_lqtvutkaccw/exec";
+    const WEB_APP_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 
     const form = document.getElementById("tripForm");
     const statusBox = document.getElementById("status");
     const submitButton = document.getElementById("submitButton");
     const dateInput = document.getElementById("tripDate");
+    const repNameInput = document.getElementById("repName");
+
+    const savedRepName = localStorage.getItem("mileageLoggerRepName");
+    if (savedRepName) {
+      repNameInput.value = savedRepName;
+    }
 
     dateInput.valueAsDate = new Date();
 
@@ -221,6 +227,18 @@
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
+      // HARD VALIDATION (forces required even if browser cache issues)
+      const destinationVal = document.getElementById("destination").value.trim();
+      const customerVal = document.getElementById("notes").value.trim();
+
+      if (!destinationVal || !customerVal) {
+        showStatus("City/Market and Customer are required.", "error");
+        return;
+      }
+
+
+      event.preventDefault();
+
       if (!WEB_APP_URL || WEB_APP_URL === "PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE") {
         showStatus("Setup needed: paste your Google Apps Script Web App URL into the code first.", "error");
         return;
@@ -230,9 +248,12 @@
       showStatus("Submitting...", "success");
 
       const formData = new FormData(form);
+      const repName = formData.get("repName").trim();
+      localStorage.setItem("mileageLoggerRepName", repName);
+
       const entry = {
         submittedAt: new Date().toISOString(),
-        repName: formData.get("repName").trim(),
+        repName: repName,
         tripDate: formData.get("tripDate"),
         submissionType: formData.get("submissionType"),
         odometer: Number(formData.get("odometer")),
@@ -250,6 +271,7 @@
 
         showStatus("Submitted successfully.", "success");
         form.reset();
+        repNameInput.value = localStorage.getItem("mileageLoggerRepName") || "";
         dateInput.valueAsDate = new Date();
       } catch (error) {
         console.error(error);
