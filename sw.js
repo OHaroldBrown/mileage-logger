@@ -1,10 +1,11 @@
-const CACHE_NAME = "mileage-logger-v1";
+const CACHE_NAME = "mileage-logger-v3";
 
 const APP_FILES = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./mile-icon.png"
+  "./mile-icon.png",
+  "./splash-logo.png"
 ];
 
 self.addEventListener("install", (event) => {
