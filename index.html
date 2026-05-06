@@ -4,9 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#020817" />
+
   <title>Trip Mileage Logger</title>
-  <link rel="icon" type="image/png" href="mile%20icon.png" />
-  <link rel="apple-touch-icon" href="mile%20icon.png" />
+
+  <!-- App / shortcut icons -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="mile-icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="mile-icon.png" />
+
+  <!-- iPhone home screen settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Mileage Logger" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Android/Chrome install setting -->
+  <meta name="mobile-web-app-capable" content="yes" />
 
   <style>
     :root {
@@ -40,7 +52,9 @@
       border: 1px solid var(--border);
     }
 
-    h1 { margin-top: 0; }
+    h1 {
+      margin-top: 0;
+    }
 
     label {
       display: block;
@@ -48,7 +62,9 @@
       font-weight: bold;
     }
 
-    input, textarea, select {
+    input,
+    textarea,
+    select {
       width: 100%;
       padding: 12px;
       margin-top: 6px;
@@ -56,6 +72,7 @@
       border: 1px solid var(--border);
       background: #07111f;
       color: white;
+      box-sizing: border-box;
     }
 
     button {
@@ -68,6 +85,16 @@
       color: white;
       font-weight: bold;
       font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(0.99);
+    }
+
+    #installBtn {
+      display: none;
+      background: linear-gradient(135deg, #22c55e, #2563eb);
     }
 
     .status {
@@ -77,108 +104,166 @@
       display: none;
     }
 
-    .success { background: #063; display: block; }
-    .error { background: #600; display: block; }
+    .success {
+      background: #063;
+      display: block;
+    }
+
+    .error {
+      background: #600;
+      display: block;
+    }
+
+    .hint {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
   </style>
 </head>
 
 <body>
-<div class="app">
+  <div class="app">
 
-<h1>Mileage Logger</h1>
+    <h1>Mileage Logger</h1>
 
-<form id="tripForm">
+    <form id="tripForm">
 
-<label>Sales Rep</label>
-<input id="repName" required>
+      <label>Sales Rep</label>
+      <input id="repName" required>
 
-<label>Trip Date</label>
-<input id="tripDate" type="date" required>
+      <label>Trip Date</label>
+      <input id="tripDate" type="date" required>
 
-<label>Submission Type</label>
-<select id="submissionType">
-  <option>Start of trip</option>
-  <option>End of trip</option>
-</select>
+      <label>Submission Type</label>
+      <select id="submissionType">
+        <option>Start of trip</option>
+        <option>End of trip</option>
+      </select>
 
-<label>Odometer</label>
-<input id="odometer" type="number" required>
+      <label>Odometer</label>
+      <input id="odometer" type="number" required>
 
-<label>City/Market of Destination</label>
-<input id="destination" required>
+      <label>City/Market of Destination</label>
+      <input id="destination" required>
 
-<label>Customer</label>
-<textarea id="notes" required></textarea>
+      <label>Customer</label>
+      <textarea id="notes" required></textarea>
 
-<button type="submit">Submit</button>
+      <button type="submit">Submit</button>
 
-</form>
+    </form>
 
-<div id="status" class="status"></div>
+    <button type="button" id="installBtn">Install App</button>
 
-</div>
+    <p class="hint">
+      On iPhone: open in Safari, tap Share, then Add to Home Screen.
+      On Android: tap Install App if shown, or use Chrome menu, then Add to Home screen.
+    </p>
 
-<script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS9j8_KJffe0iMDaTHKv6W6tXNP7NeFCLhnQc3m1EFPXdJvEMO5aVApP_lqtvutkaccw/exec";
+    <div id="status" class="status"></div>
 
-const form = document.getElementById("tripForm");
-const statusBox = document.getElementById("status");
-const repNameInput = document.getElementById("repName");
-const dateInput = document.getElementById("tripDate");
+  </div>
 
-const savedName = localStorage.getItem("repName");
-if (savedName) repNameInput.value = savedName;
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS9j8_KJffe0iMDaTHKv6W6tXNP7NeFCLhnQc3m1EFPXdJvEMO5aVApP_lqtvutkaccw/exec";
 
-dateInput.valueAsDate = new Date();
+    const form = document.getElementById("tripForm");
+    const statusBox = document.getElementById("status");
+    const repNameInput = document.getElementById("repName");
+    const dateInput = document.getElementById("tripDate");
+    const installBtn = document.getElementById("installBtn");
 
-function show(msg, type) {
-  statusBox.textContent = msg;
-  statusBox.className = "status " + type;
-}
+    const savedName = localStorage.getItem("repName");
+    if (savedName) {
+      repNameInput.value = savedName;
+    }
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const repName = repNameInput.value.trim();
-  const destination = document.getElementById("destination").value.trim();
-  const customer = document.getElementById("notes").value.trim();
-
-  if (!destination || !customer) {
-    show("City/Market and Customer are required", "error");
-    return;
-  }
-
-  localStorage.setItem("repName", repName);
-
-  const data = {
-    submittedAt: new Date().toISOString(),
-    repName,
-    tripDate: dateInput.value,
-    submissionType: document.getElementById("submissionType").value,
-    odometer: document.getElementById("odometer").value,
-    destination,
-    notes: customer
-  };
-
-  show("Submitting...", "success");
-
-  try {
-    await fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify(data)
-    });
-
-    show("Submitted!", "success");
-    form.reset();
-    repNameInput.value = localStorage.getItem("repName");
     dateInput.valueAsDate = new Date();
 
-  } catch {
-    show("Submission failed", "error");
-  }
-});
-</script>
+    function show(msg, type) {
+      statusBox.textContent = msg;
+      statusBox.className = "status " + type;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const repName = repNameInput.value.trim();
+      const destination = document.getElementById("destination").value.trim();
+      const customer = document.getElementById("notes").value.trim();
+
+      if (!destination || !customer) {
+        show("City/Market and Customer are required", "error");
+        return;
+      }
+
+      localStorage.setItem("repName", repName);
+
+      const data = {
+        submittedAt: new Date().toISOString(),
+        repName,
+        tripDate: dateInput.value,
+        submissionType: document.getElementById("submissionType").value,
+        odometer: document.getElementById("odometer").value,
+        destination,
+        notes: customer
+      };
+
+      show("Submitting...", "success");
+
+      try {
+        await fetch(WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          body: JSON.stringify(data)
+        });
+
+        show("Submitted!", "success");
+
+        form.reset();
+
+        repNameInput.value = localStorage.getItem("repName");
+        dateInput.valueAsDate = new Date();
+
+      } catch (error) {
+        show("Submission failed", "error");
+      }
+    });
+
+    // Android / Chrome install button
+    let deferredPrompt;
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = "block";
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (!deferredPrompt) {
+        show("Use your browser menu to add this app to your Home Screen.", "error");
+        return;
+      }
+
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+
+      deferredPrompt = null;
+      installBtn.style.display = "none";
+    });
+
+    // Service worker registration
+    // This is safe to leave here. Next, you will create the sw.js file.
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch((error) => {
+          console.log("Service worker registration failed:", error);
+        });
+      });
+    }
+  </script>
 
 </body>
 </html>
