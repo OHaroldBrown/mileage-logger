@@ -1,0 +1,24 @@
+{
+  "name": "Trip Mileage Logger",
+  "short_name": "Mileage",
+  "description": "Trip mileage logger for sales reps",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#020817",
+  "theme_color": "#020817",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "mile-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "mile-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
